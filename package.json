@@ -1,0 +1,15 @@
+{
+  "name": "reactor-evs",
+  "version": "0.0.0",
+  "description": "An event sourcing experiment with isaax-reactor",
+  "main": "service.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Maksim Korinets",
+  "license": "ISC",
+  "dependencies": {
+    "isaax-nats-js-wrapper": "github:xshellinc/isaax-nats-js-wrapper#v1.6.0",
+    "isaax-reactor": "github:xshellinc/isaax-reactor#v2.1.1"
+  }
+}
