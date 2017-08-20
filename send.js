@@ -1,15 +1,28 @@
 const cli = require('commander');
-const NATSWrapper = require('isaax-nats-js-wrapper');
+const stan = require('node-nats-streaming').connect('test-cluster', 'publisher');
+const configLoader = require('ini-config');
 
 
-const nats = NATSWrapper();
-cli
-    .version('0.1.0')
-    .command('query <subject> <payload>')
-    .action(function(subject, payload) {
-        console.log('>>> sending query', subject, payload);
-        nats.publish(subject, payload);
+configLoader('config.ini', (error, config) => {
+    cli
+        .version('0.1.0')
+        .command('command <subject> <payload>')
+        .action(function(subject, payload) {
+            console.log('>>> sending command:', subject, payload);
+            stan.publish(subject, payload, function(error, guid){
+                if(error) {
+                    console.log('publish failed: ' + error);
+                } else {
+                    console.log('published message with guid: ' + guid);
+                    stan.close();
+                }
+            });
+
+        });
+    stan.on('connect', () => {
+        cli.parse(process.argv);
     });
-
-cli.parse(process.argv);
-process.exit();
+    stan.on('close', function() {
+        process.exit();
+    });
+});
