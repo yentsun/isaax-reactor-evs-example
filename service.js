@@ -14,15 +14,6 @@ stan.on('error', (error) => {
 
 reactor.on('config', (config, done) => {
     reactor.set('store', {list: [], ids: {}, total: 0});
-    stan.on('connect', () => {
-        console.log('  > connected to stan');
-        reactor.set('stan', stan);
-        done();
-    });
-
-});
-
-reactor.on('ready', () => {
     const store = reactor.get('store');
     app.get('/', function (req, res) {
         res.json({total: store.total, list: store.list});
@@ -34,4 +25,10 @@ reactor.on('ready', () => {
     app.listen(reactor.config.http.port, function () {
         console.log('  > http listening on', reactor.config.http.port)
     });
+    stan.on('connect', () => {
+        console.log('  > connected to stan');
+        reactor.set('stan', stan);
+        done()
+    });
+
 });
