@@ -4,8 +4,7 @@ const express = require('express');
 const pack = require('./package.json');
 
 
-const reactor = new Reactor('evs');
-let c;
+const reactor = new Reactor('evs', {}, pack);
 const app = express();
 
 stan.on('error', (error) => {
@@ -14,11 +13,9 @@ stan.on('error', (error) => {
 });
 
 reactor.on('config', (config, done) => {
-    config.pack = pack;
-    c = config;
     reactor.set('store', {list: [], ids: {}, total: 0});
     stan.on('connect', () => {
-        console.log('> connected to stan');
+        console.log('  > connected to stan');
         reactor.set('stan', stan);
         done();
     });
@@ -35,11 +32,6 @@ reactor.on('ready', () => {
         res.json(store.ids[id]);
     });
     app.listen(reactor.config.http.port, function () {
-        console.log('> http listening on', reactor.config.http.port)
+        console.log('  > http listening on', reactor.config.http.port)
     });
-
-
-    console.log(`************************************************************************`);
-    console.log(`  ${c.pack.name}@${c.pack.version} ready [${c.environment}]`);
-    console.log(`************************************************************************`);
 });
