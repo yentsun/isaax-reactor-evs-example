@@ -9,10 +9,13 @@
   "author": "Maksim Korinets",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.5.0",
     "commander": "^2.11.0",
     "ini-config": "github:xshellinc/ini-config",
     "isaax-nats-js-wrapper": "github:xshellinc/isaax-nats-js-wrapper#v1.6.0",
     "isaax-reactor": "github:xshellinc/isaax-reactor#v2.1.1",
-    "node-nats-streaming": "0.0.26"
+    "node-nats-streaming": "0.0.26",
+    "node-uuid": "^1.4.8",
+    "uuid": "^3.1.0"
   }
 }

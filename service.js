@@ -15,6 +15,7 @@ stan.on('error', (error) => {
 reactor.on('config', (config, done) => {
     config.pack = pack;
     c = config;
+    reactor.set('store', {list: [], ids: {}, total: 0});
     stan.on('connect', () => {
         reactor.set('stan', stan);
         done();
