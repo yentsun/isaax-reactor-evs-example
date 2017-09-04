@@ -18,6 +18,7 @@ reactor.on('config', (config, done) => {
     c = config;
     reactor.set('store', {list: [], ids: {}, total: 0});
     stan.on('connect', () => {
+        console.log('> connected to stan');
         reactor.set('stan', stan);
         done();
     });
@@ -34,7 +35,7 @@ reactor.on('ready', () => {
         res.json(store.ids[id]);
     });
     app.listen(reactor.config.http.port, function () {
-        console.log('http listening on', reactor.config.http.port)
+        console.log('> http listening on', reactor.config.http.port)
     });
 
 
