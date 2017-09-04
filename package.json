@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "commander": "^2.11.0",
+    "express": "^4.15.4",
     "ini-config": "github:xshellinc/ini-config",
     "isaax-nats-js-wrapper": "github:xshellinc/isaax-nats-js-wrapper#v1.6.0",
     "isaax-reactor": "github:xshellinc/isaax-reactor#v2.1.1",
