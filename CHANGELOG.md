@@ -2,3 +2,4 @@
 -------
 - [ ] ADDED mongoDB replicaset handling
 - [ ] ADDED mongoDB store
+- [x] ADDED manual ack

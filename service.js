@@ -1,34 +1,59 @@
-const stan = require('node-nats-streaming').connect('test-cluster', 'subscriber');
+const NATSSreaming = require('node-nats-streaming');
+const {MongoClient} = require('mongodb');
+const series = require('async/parallel');
 const Reactor = require('isaax-reactor');
 const express = require('express');
 const pack = require('./package.json');
 
 
-const reactor = new Reactor('evs', {}, pack);
-const app = express();
-
-stan.on('error', (error) => {
-   console.log(error.message);
-   process.exit(1);
-});
+const reactor = new Reactor('evs-projects', {}, pack);
 
 reactor.on('config', (config, done) => {
-    reactor.set('store', {list: [], ids: {}, total: 0});
-    const store = reactor.get('store');
-    app.get('/', function (req, res) {
-        res.json({total: store.total, list: store.list});
-    });
-    app.get('/:id', function (req, res) {
-        const {id} = req.params;
-        res.json(store.ids[id]);
-    });
-    app.listen(reactor.config.http.port, function () {
-        console.log('  > http listening on', reactor.config.http.port)
-    });
-    stan.on('connect', () => {
-        console.log('  > connected to stan');
+
+    series([
+
+        function mongoConnect(done) {
+            MongoClient.connect(config.mongodb.url, (error, db) => {
+                if (!error) console.log('  > connected to mongodb', config.mongodb.url);
+                const ids = db.collection('ids');
+                const pages = db.collection('pages');
+                ids.drop();
+                pages.drop();
+                done(error, db);
+            });
+        },
+
+        function stanConnect(done) {
+            const stan = NATSSreaming.connect(config.nats.cluster, 'subscriber');
+            stan.on('error', (error) => {
+                return done(error);
+            });
+            stan.on('connect', () => {
+                console.log('  > connected to stan');
+                done(null, stan);
+            });
+        },
+
+        function expressApp(done) {
+            const app = express();
+            app.listen(reactor.config.http.port, function () {
+                console.log('  > http listening on', reactor.config.http.port);
+                done(null, app);
+            });
+        }
+
+    ], (error, [db, stan, app]) => {
+
+        if (error) {
+            console.log(error.message);
+            done(error);
+            process.exit(1);
+        }
+
+        reactor.set('db', db);
         reactor.set('stan', stan);
-        done()
+        reactor.set('app', app);
+        done();
     });
 
 });
