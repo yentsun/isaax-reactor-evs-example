@@ -1,8 +1,8 @@
+const {parallel} = require('async');
 const NATSSreaming = require('node-nats-streaming');
 const {MongoClient} = require('mongodb');
 const series = require('async/parallel');
 const Reactor = require('isaax-reactor');
-const express = require('express');
 const pack = require('./package.json');
 
 
@@ -12,14 +12,18 @@ reactor.on('config', (config, done) => {
 
     series([
 
-        function mongoConnect(done) {
+        function mongoConnectAndClean(done) {
             MongoClient.connect(config.mongodb.url, (error, db) => {
                 if (!error) console.log('  > connected to mongodb', config.mongodb.url);
                 const ids = db.collection('ids');
                 const pages = db.collection('pages');
-                ids.drop();
-                pages.drop();
-                done(error, db);
+                parallel([
+                    (done) => {ids.drop(done);},
+                    (done) => {pages.drop(done);}
+                ], (error) => {
+                        done(error, db);
+                    }
+                );
             });
         },
 
@@ -32,17 +36,9 @@ reactor.on('config', (config, done) => {
                 console.log('  > connected to stan');
                 done(null, stan);
             });
-        },
-
-        function expressApp(done) {
-            const app = express();
-            app.listen(reactor.config.http.port, function () {
-                console.log('  > http listening on', reactor.config.http.port);
-                done(null, app);
-            });
         }
 
-    ], (error, [db, stan, app]) => {
+    ], (error, [db, stan]) => {
 
         if (error) {
             console.log(error.message);
@@ -52,7 +48,6 @@ reactor.on('config', (config, done) => {
 
         reactor.set('db', db);
         reactor.set('stan', stan);
-        reactor.set('app', app);
         done();
     });
 

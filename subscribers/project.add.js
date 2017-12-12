@@ -1,5 +1,6 @@
-const {series} = require('async');
+const {parallel} = require('async');
 const {PassThrough, Writable} = require('stream');
+
 
 module.exports = (reactor, logger) => {
     const stan = reactor.get('stan');
@@ -10,16 +11,9 @@ module.exports = (reactor, logger) => {
     const storeWritable = new Writable({
         write(newProjectString, encoding, done) {
             const newProject = JSON.parse(newProjectString);
-            series([
-
-                function addProject(done) {
-                    project.add(newProject, done);
-                },
-
-                function addProjectToPages(done) {
-                    project.addToPages(newProject, done);
-                }
-
+            parallel([
+                function addProject(done) {project.addToIds(newProject, done);},
+                function addProjectToPages(done) {project.addToPages(newProject, done);}
             ], done);
         }
     });
@@ -28,7 +22,7 @@ module.exports = (reactor, logger) => {
     sub.on('message', (msg) => {
         const newProject = JSON.parse(msg.getData());
         const seq = msg.getSequence();
-        logger.debug('got project data', newProject, seq);
+        logger.debug(newProject, seq);
         newProject.title = `Title #${newProject.id}`;
         newProject.loggedAt = msg.getTimestamp();
         queueStream.push(JSON.stringify(newProject));
